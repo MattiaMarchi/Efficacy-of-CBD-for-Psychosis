@@ -108,3 +108,33 @@ se
 forest(se, layout = "RevMan5", digits.sd = 2, random = T, fixed = F,
        label.e = "CBD", label.c = "Controls",
        label.left = "Favours CBD", label.right = "Favours Controls", allstudies = F)
+
+###----------------------------------------------------------------------------------------
+###------5. Power / precision analysis for primary outcome (psychosis severity)------------
+###----------------------------------------------------------------------------------------
+ps <- metacont(n.e = NT1, mean.e = Mean1_T, sd.e = SD1_T,
+               n.c = NC1, mean.c = Mean1_C, sd.c = SD1_C,
+               data = df, studlab = ID, sm = "SMD")
+ps
+#Extract SE of the pooled random-effects SMD
+se_ps <- ps$seTE.random
+#Function to compute two-sided power for a given true effect size (delta, as SMD)
+meta_power <- function(delta, se, alpha = 0.05) {
+  z_alpha <- qnorm(1 - alpha/2)
+  z <- abs(delta) / se
+  p_left  <- pnorm(-z_alpha - z)
+  p_right <- 1 - pnorm(z_alpha - z)
+  p_left + p_right
+}
+#Power to detect clinically relevant SMDs (e.g. 0.3 and 0.4)
+power_smd_03 <- meta_power(0.3, se_ps)
+power_smd_04 <- meta_power(0.4, se_ps)
+power_smd_03
+power_smd_04
+#Minimal detectable effect size with 80% power at alpha = 0.05
+alpha <- 0.05
+target_power <- 0.80
+z_alpha <- qnorm(1 - alpha/2)
+z_beta  <- qnorm(target_power)
+mde_80  <- (z_alpha + z_beta) * se_ps
+mde_80
